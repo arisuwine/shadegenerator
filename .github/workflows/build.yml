@@ -1,0 +1,35 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: ${{ matrix.game }} / ${{ matrix.config }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        game: [CS2, DOTA2, DEADLOCK]
+        config: [Debug, Release]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify toolchain
+        run: |
+          clang --version
+          ninja --version
+          cmake --version
+
+      - name: Configure (${{ matrix.game }}, ${{ matrix.config }})
+        run: >
+          cmake -S . -B build/${{ matrix.game }}/${{ matrix.config }} -G Ninja
+          -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+          -DCMAKE_CXX_COMPILER=clang++
+          -DSHADEGENERATOR_GAME=${{ matrix.game }}
+
+      - name: Build (${{ matrix.game }}, ${{ matrix.config }})
+        run: cmake --build build/${{ matrix.game }}/${{ matrix.config }}

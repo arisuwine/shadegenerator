@@ -1,0 +1,25 @@
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-exception-escape,
+  -bugprone-narrowing-conversions,
+  -bugprone-reserved-identifier,
+  -bugprone-throwing-static-initialization,
+  performance-*,
+  -performance-avoid-endl,
+  -performance-no-int-to-ptr,
+  misc-*,
+  -misc-non-private-member-variables-in-classes,
+  -misc-no-recursion,
+  -misc-use-anonymous-namespace,
+  -misc-include-cleaner,
+  -misc-const-correctness,
+  readability-misleading-indentation,
+  readability-redundant-control-flow
+
+HeaderFilterRegex: '.*[/\\]shadegenerator[/\\](codegen|game|schema|tools|utils)[/\\].*'
+ExcludeHeaderFilterRegex: '.*[/\\](build|sdk|thirdparty|_deps)[/\\].*'
+
+WarningsAsErrors: ''
+FormatStyle: file

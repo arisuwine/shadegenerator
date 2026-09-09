@@ -1,0 +1,12 @@
+PROJECT_NAME           = "shadegenerator"
+PROJECT_BRIEF          = "Source 2 SDK Generator"
+OUTPUT_DIRECTORY       = "@CMAKE_CURRENT_BINARY_DIR@/docs"
+INPUT                  = "@CMAKE_CURRENT_SOURCE_DIR@/shadegenerator"
+EXCLUDE                = "@CMAKE_CURRENT_SOURCE_DIR@/shadegenerator/sdk"
+EXCLUDE_PATTERNS       = */build/* */_deps/*
+RECURSIVE              = YES
+EXTRACT_ALL            = YES
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+QUIET                  = YES
+WARN_AS_ERROR          = FAIL_ON_WARNINGS
