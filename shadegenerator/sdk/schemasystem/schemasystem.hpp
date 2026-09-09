@@ -33,7 +33,6 @@ public:
 	CSchemaPtrMap<int, const SchemaAtomicTypeInfo_t*>                                m_AtomicTypeInfo; // 0x04C8
 	CSchemaPtrMap<TypeAndCountInfo_t, CSchemaType_FixedArray*>                       m_FixedArray; // 0x04F8
 	CSchemaPtrMap<int, CSchemaType_Bitfield*>                                        m_Bitfield; // 0x0528
-	char                                                                             pad_0558[0x8];
 	CUtlTSHash<CSchemaClassInfo*, 256, uint32_t>                                     m_ClassBindings; // 0x0560
 	CUtlTSHash<CSchemaEnumInfo*, 256, uint32_t>                                      m_EnumBindings; // 0x1DD0
 
