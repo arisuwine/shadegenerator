@@ -126,9 +126,11 @@ struct typedescription_t
 	unsigned short		fieldSize;
 	int					flags;
 	// the name of the variable in the map/fgd data, or the name of the action
-	const char			*externalName;	
+	const char			*externalName;
 	// pointer to the function set for save/restoring of custom data types
-	ISaveRestoreOps		*pSaveRestoreOps; 
+	ISaveRestoreOps		*pSaveRestoreOps;
+
+#ifndef SHADE_GAME_CS2
 	// for associating function with string names
 	void*			inputFunc; // inputfunc_t
 
@@ -138,10 +140,12 @@ struct typedescription_t
 		datamap_t* td;
 		const char* enumName;
 	};
+#endif
 
 	// Stores the actual member variable size in bytes
 	int					fieldSizeInBytes;
-  
+
+#ifndef SHADE_GAME_CS2
 	// Tolerance for field errors for float fields
 	float				fieldTolerance;
 
@@ -151,6 +155,7 @@ struct typedescription_t
 
 	IPredictionCopyOps*	pPredictionCopyOps;
 	datamap_t*			m_pPredictionCopyDataMap;
+#endif
 
 	[[nodiscard]] std::string_view GetFieldName() const noexcept {
 		return fieldName ? fieldName : "";
