@@ -210,6 +210,8 @@ shade::schema::SchemaTypeRef_t shade::tools::CSchemaCollector::CollectDataMapTyp
 		return m_Model.AddType(schema::PointerType_t{
 		    .m_PointeeType = AddBuiltinType(schema::ESchemaBuiltinType::CHAR),
 		});
+	case FIELD_SOUNDNAME:
+		return AddBuiltinType(schema::ESchemaBuiltinType::INT32);
 	case FIELD_FUNCTION:
 		return m_Model.AddType(schema::PointerType_t{
 		    .m_PointeeType = AddBuiltinType(kBuiltinVoid),
@@ -253,6 +255,10 @@ shade::schema::SchemaTypeRef_t shade::tools::CSchemaCollector::CollectDataMapTyp
 		return AddAtomic("CStrongHandle<InfoForResourceTypeCModel>");
 	case FIELD_HMATERIAL:
 		return AddAtomic("CStrongHandle<InfoForResourceTypeIMaterial2>");
+	case FIELD_MATRIX3X4_WORLDSPACE:
+		return AddAtomic("matrix3x4_t");
+	case FIELD_HSCRIPT:
+		return AddAtomic("HSCRIPT");
 	default:
 		return AddInvalidType("datamap field type " + std::to_string(nType));
 	}
