@@ -45,7 +45,7 @@ namespace shade::tools {
 		[[nodiscard]] std::optional<schema::SchemaAtomicParameters_t> CollectAtomicParameters(const CSchemaType_Atomic& atomic);
 		/**
 		 * @brief Converts a datamap field type to a schema model type.
-		 * @param nType The engine `fieldtype_t` value.
+		 * @param nType The raw engine datamap field type value.
 		 * @return The corresponding model type reference.
 		 */
 		[[nodiscard]] schema::SchemaTypeRef_t CollectDataMapType(int nType);

@@ -1,6 +1,8 @@
 #include "collector.hpp"
 
+#include <array>
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <string>
 #include <utility>
@@ -54,6 +56,66 @@ namespace {
 		default:
 			return std::nullopt;
 		}
+	}
+
+	[[nodiscard]] std::optional<fieldtype_t> GetDataMapFieldType(int nType) {
+#ifdef SHADE_GAME_CS2
+		// CS2 datamaps use a compact field type enum that is distinct from the
+		// schema-exposed fieldtype_t. Keep this translation at the ABI boundary.
+		static constexpr std::array kFieldTypes{
+			FIELD_VOID,
+			FIELD_FLOAT32,
+			FIELD_STRING,
+			FIELD_VECTOR,
+			FIELD_QUATERNION,
+			FIELD_INT32,
+			FIELD_BOOLEAN,
+			FIELD_INT16,
+			FIELD_CHARACTER,
+			FIELD_COLOR32,
+			FIELD_EMBEDDED,
+			FIELD_EHANDLE,
+			FIELD_POSITION_VECTOR,
+			FIELD_TIME,
+			FIELD_TICK,
+			FIELD_SOUNDNAME,
+			FIELD_INTERVAL,
+			FIELD_INT64,
+			FIELD_VECTOR4D,
+			FIELD_UINT64,
+			FIELD_UINT32,
+			FIELD_UTLSTRINGTOKEN,
+			FIELD_QANGLE,
+			FIELD_NETWORK_ORIGIN_CELL_QUANTIZED_VECTOR,
+			FIELD_HMATERIAL,
+			FIELD_HMODEL,
+			FIELD_NETWORK_QUANTIZED_VECTOR,
+			FIELD_NETWORK_QUANTIZED_FLOAT,
+			FIELD_DIRECTION_VECTOR_WORLDSPACE,
+			FIELD_QANGLE_WORLDSPACE,
+			FIELD_QUATERNION_WORLDSPACE,
+			FIELD_UTLSTRING,
+			FIELD_HRENDERTEXTURE,
+			FIELD_HPARTICLESYSTEMDEFINITION,
+			FIELD_UINT8,
+			FIELD_UINT16,
+			FIELD_HPOSTPROCESSING,
+			FIELD_MATRIX3X4,
+			FIELD_SHIM,
+			FIELD_ATTACHMENT_HANDLE,
+			FIELD_GLOBALSYMBOL,
+			FIELD_HNMGRAPHDEFINITION,
+			FIELD_NETWORK_QUANTIZED_VECTORWS,
+			FIELD_NETWORK_ORIGIN_CELL_QUANTIZED_VECTORWS,
+		};
+
+		if (nType < 0 || static_cast<std::size_t>(nType) >= kFieldTypes.size())
+			return std::nullopt;
+
+		return kFieldTypes[static_cast<std::size_t>(nType)];
+#else
+		return static_cast<fieldtype_t>(nType);
+#endif
 	}
 } // namespace
 
@@ -178,19 +240,26 @@ shade::schema::SchemaTypeRef_t shade::tools::CSchemaCollector::CollectDataMapTyp
 		});
 	};
 
+	const auto type = GetDataMapFieldType(nType);
+	if (!type)
+		return AddInvalidType("datamap field type " + std::to_string(nType));
+
 	/// @author neverlosecc/source2gen
-	switch (static_cast<fieldtype_t>(nType)) {
+	switch (*type) {
 	case FIELD_VOID:
 	case FIELD_CUSTOM:
 		return AddBuiltinType(kBuiltinVoid);
 	case FIELD_FLOAT32:
 	case FIELD_ENGINE_TIME:
+	case FIELD_NETWORK_QUANTIZED_FLOAT:
 		return AddBuiltinType(schema::ESchemaBuiltinType::FLOAT32);
 	case FIELD_FLOAT64:
 		return AddBuiltinType(schema::ESchemaBuiltinType::FLOAT64);
 	case FIELD_INT16:
 		return AddBuiltinType(schema::ESchemaBuiltinType::INT16);
 	case FIELD_INT32:
+	case FIELD_TICK:
+	case FIELD_ENGINE_TICK:
 		return AddBuiltinType(schema::ESchemaBuiltinType::INT32);
 	case FIELD_INT64:
 		return AddBuiltinType(schema::ESchemaBuiltinType::INT64);
@@ -223,8 +292,11 @@ shade::schema::SchemaTypeRef_t shade::tools::CSchemaCollector::CollectDataMapTyp
 	case FIELD_VECTOR:
 	case FIELD_POSITION_VECTOR:
 	case FIELD_NETWORK_ORIGIN_CELL_QUANTIZED_VECTOR:
+	case FIELD_NETWORK_ORIGIN_CELL_QUANTIZED_POSITION_VECTOR:
 	case FIELD_DIRECTION_VECTOR_WORLDSPACE:
 	case FIELD_NETWORK_QUANTIZED_VECTOR:
+	case FIELD_NETWORK_QUANTIZED_VECTORWS:
+	case FIELD_NETWORK_ORIGIN_CELL_QUANTIZED_VECTORWS:
 		return AddAtomic("Vector");
 	case FIELD_VECTOR2D:
 		return AddAtomic("Vector2D");
@@ -234,6 +306,7 @@ shade::schema::SchemaTypeRef_t shade::tools::CSchemaCollector::CollectDataMapTyp
 	case FIELD_QANGLE_WORLDSPACE:
 		return AddAtomic("QAngle");
 	case FIELD_QUATERNION:
+	case FIELD_QUATERNION_WORLDSPACE:
 		return AddAtomic("Quaternion");
 	case FIELD_UTLSTRING:
 		return AddAtomic("CUtlString");
@@ -244,18 +317,33 @@ shade::schema::SchemaTypeRef_t shade::tools::CSchemaCollector::CollectDataMapTyp
 	case FIELD_WORLD_GROUP_ID:
 		return AddAtomic("WorldGroupId_t");
 	case FIELD_ROTATION_VECTOR:
+	case FIELD_ROTATION_VECTOR_WORLDSPACE:
 		return AddAtomic("RotationVector");
+	case FIELD_CTRANSFORM:
 	case FIELD_CTRANSFORM_WORLDSPACE:
 		return AddAtomic("CTransform");
 	case FIELD_SHIM:
 		return AddAtomic("SHIM");
+	case FIELD_ATTACHMENT_HANDLE:
+		return AddAtomic("AttachmentHandle_t");
+	case FIELD_GLOBALSYMBOL:
+		return AddAtomic("CGlobalSymbol");
 	case FIELD_EHANDLE:
 		return AddAtomic("CHandle<CBaseEntity>");
 	case FIELD_HMODEL:
 		return AddAtomic("CStrongHandle<InfoForResourceTypeCModel>");
 	case FIELD_HMATERIAL:
 		return AddAtomic("CStrongHandle<InfoForResourceTypeIMaterial2>");
+	case FIELD_HRENDERTEXTURE:
+		return AddAtomic("CStrongHandle<InfoForResourceTypeCTextureBase>");
+	case FIELD_HPARTICLESYSTEMDEFINITION:
+		return AddAtomic("CStrongHandle<InfoForResourceTypeIParticleSystemDefinition>");
+	case FIELD_HPOSTPROCESSING:
+		return AddAtomic("CStrongHandle<InfoForResourceTypeCPostProcessingResource>");
+	case FIELD_HNMGRAPHDEFINITION:
+		return AddAtomic("CStrongHandle<InfoForResourceTypeCNmGraphDefinition>");
 	case FIELD_MATRIX3X4_WORLDSPACE:
+	case FIELD_MATRIX3X4:
 		return AddAtomic("matrix3x4_t");
 	case FIELD_HSCRIPT:
 		return AddAtomic("HSCRIPT");

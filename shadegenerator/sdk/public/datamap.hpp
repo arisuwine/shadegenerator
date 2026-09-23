@@ -105,7 +105,7 @@ enum fieldtype_t : uint8_t
 	FIELD_HNMGRAPHDEFINITION,
 	FIELD_NETWORK_QUANTIZED_VECTORWS,
 	FIELD_NETWORK_ORIGIN_CELL_QUANTIZED_VECTORWS,
-	
+
 	FIELD_TYPECOUNT
 };
 
@@ -120,7 +120,11 @@ enum TypedescriptionOffsetType_t
 
 struct typedescription_t
 {
+#ifdef SHADE_GAME_CS2
+	std::uint8_t		fieldType;
+#else
 	fieldtype_t			fieldType;
+#endif
 	const char			*fieldName;
 	int					fieldOffset; // Local offset value
 	unsigned short		fieldSize;
@@ -161,6 +165,10 @@ struct typedescription_t
 		return fieldName ? fieldName : "";
 	}
 };
+
+#ifdef SHADE_GAME_CS2
+static_assert(sizeof(typedescription_t) == 0x38, "CS2 typedescription_t size mismatch");
+#endif
 
 // See predictioncopy.h for implementation and notes
 struct optimized_datamap_t;
