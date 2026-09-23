@@ -249,9 +249,9 @@ void shade::tools::CSchemaCollector::CollectDataMapFields(const CSchemaClassInfo
 
 	if (const auto pDataMap = info.m_pDataDescMap; pDataMap && pDataMap->dataDesc && pDataMap->dataNumFields > 0) {
 		for (int i = 0; i < pDataMap->dataNumFields; ++i) {
-			const auto&       field  = pDataMap->dataDesc[i];
-			const std::string szName = std::string(field.GetFieldName());
+			const auto& field = pDataMap->dataDesc[i];
 
+			const std::string szName = std::string(field.GetFieldName());
 			if (!fieldNames.emplace(szName).second)
 				continue;
 
