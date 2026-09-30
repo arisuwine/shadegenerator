@@ -54,6 +54,7 @@ void shade::codegen::CCppEmitter::Prologue() {
 	m_Generator.Pragma("once");
 	m_Generator.Include("cstdint", EIncludeType::System);
 	m_Generator.Include("memory", EIncludeType::System);
+	m_Generator.Include("optional", EIncludeType::System);
 	m_Generator.Include("utility", EIncludeType::System).NewLine();
 }
 
