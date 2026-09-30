@@ -438,9 +438,7 @@ struct SchemaClassInfoData_t {
 
 	const char* m_pszName; // 0x0008
 	const char* m_pszProjectName; // 0x0010
-#ifndef SHADE_GAME_DEADLOCK
 	const char* m_pszCPPName; // 0x0018
-#endif
 
 	int m_nSize; // 0x0020
 
