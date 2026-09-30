@@ -109,6 +109,61 @@ enum fieldtype_t : uint8_t
 	FIELD_TYPECOUNT
 };
 
+enum class SpawnKeyType_t : uint8_t
+{
+	FIELD_VOID = 0,
+	FIELD_FLOAT32,
+	FIELD_STRING,
+	FIELD_VECTOR,
+	FIELD_QUATERNION,
+	FIELD_INT32,
+	FIELD_BOOLEAN,
+	FIELD_INT16,
+	FIELD_CHARACTER,
+	FIELD_COLOR32,
+	FIELD_EMBEDDED,
+	FIELD_EHANDLE,
+	FIELD_POSITION_VECTOR,
+	FIELD_TIME,
+	FIELD_TICK,
+	FIELD_SOUNDNAME,
+	FIELD_VECTOR2D,
+	FIELD_INT64,
+	FIELD_VECTOR4D,
+	FIELD_UINT64,
+	FIELD_UINT32,
+	FIELD_UTLSTRINGTOKEN,
+	FIELD_QANGLE,
+	FIELD_NETWORK_ORIGIN_CELL_QUANTIZED_VECTOR,
+	FIELD_HMATERIAL,
+	FIELD_HMODEL,
+	FIELD_NETWORK_QUANTIZED_VECTOR,
+	FIELD_NETWORK_QUANTIZED_FLOAT,
+	FIELD_DIRECTION_VECTOR_WORLDSPACE,
+	FIELD_QANGLE_WORLDSPACE,
+	FIELD_QUATERNION_WORLDSPACE,
+	FIELD_UTLSTRING,
+	FIELD_HRENDERTEXTURE,
+	FIELD_HPARTICLESYSTEMDEFINITION,
+	FIELD_UINT8,
+	FIELD_UINT16,
+	FIELD_HPOSTPROCESSING,
+	FIELD_AMMO_INDEX,
+	FIELD_MODIFIER_HANDLE,
+	FIELD_HVDATA,
+	FIELD_GLOBALSYMBOL,
+	FIELD_NETWORK_QUANTIZED_VECTORWS,
+	FIELD_NETWORK_ORIGIN_CELL_QUANTIZED_VECTORWS,
+
+	FIELD_TYPECOUNT
+};
+
+#ifdef SHADE_GAME_DOTA2
+using DataMapFieldType_t = fieldtype_t;
+#else
+using DataMapFieldType_t = SpawnKeyType_t;
+#endif
+
 enum TypedescriptionOffsetType_t
 {
 	TD_OFFSET_NORMAL = 0,
@@ -120,23 +175,21 @@ enum TypedescriptionOffsetType_t
 
 struct typedescription_t
 {
-#ifdef SHADE_GAME_CS2
-	std::uint8_t		fieldType;
-#else
-	fieldtype_t			fieldType;
-#endif
+	DataMapFieldType_t	fieldType;
+
 	const char			*fieldName;
 	int					fieldOffset; // Local offset value
 	unsigned short		fieldSize;
 	int					flags;
 	// the name of the variable in the map/fgd data, or the name of the action
 	const char			*externalName;
+
+#ifdef SHADE_GAME_DOTA2
 	// pointer to the function set for save/restoring of custom data types
 	ISaveRestoreOps		*pSaveRestoreOps;
-
-#ifndef SHADE_GAME_CS2
 	// for associating function with string names
 	void*			inputFunc; // inputfunc_t
+#endif
 
 	// For embedding additional datatables inside this one
 	union
@@ -144,12 +197,11 @@ struct typedescription_t
 		datamap_t* td;
 		const char* enumName;
 	};
-#endif
 
 	// Stores the actual member variable size in bytes
 	int					fieldSizeInBytes;
 
-#ifndef SHADE_GAME_CS2
+#ifdef SHADE_GAME_DOTA2
 	// Tolerance for field errors for float fields
 	float				fieldTolerance;
 
@@ -166,8 +218,8 @@ struct typedescription_t
 	}
 };
 
-#ifdef SHADE_GAME_CS2
-static_assert(sizeof(typedescription_t) == 0x38, "CS2 typedescription_t size mismatch");
+#if defined(SHADE_GAME_CS2) || defined (SHADE_GAME_DEADLOCK)
+static_assert(sizeof(typedescription_t) == 0x38, "typedescription_t size mismatch");
 #endif
 
 // See predictioncopy.h for implementation and notes
