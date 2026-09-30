@@ -54,8 +54,13 @@ void shade::codegen::CCppEmitter::Prologue() {
 	m_Generator.Pragma("once");
 	m_Generator.Include("cstdint", EIncludeType::System);
 	m_Generator.Include("memory", EIncludeType::System);
+	m_Generator.Include("utility", EIncludeType::System);
+
+#ifdef SHADE_GAME_DEADLOCK
 	m_Generator.Include("optional", EIncludeType::System);
-	m_Generator.Include("utility", EIncludeType::System).NewLine();
+#endif
+
+	m_Generator.NewLine();
 }
 
 void shade::codegen::CCppEmitter::Dependencies(const schema::SchemaDependencies_t& dependencies) {
