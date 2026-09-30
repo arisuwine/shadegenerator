@@ -8,6 +8,7 @@
 #include <unordered_set>
 
 #include "schema/model.hpp"
+#include "sdk/public/datamap.hpp"
 
 class CSchemaClassInfo;
 class CSchemaEnumInfo;
@@ -45,10 +46,10 @@ namespace shade::tools {
 		[[nodiscard]] std::optional<schema::SchemaAtomicParameters_t> CollectAtomicParameters(const CSchemaType_Atomic& atomic);
 		/**
 		 * @brief Converts a datamap field type to a schema model type.
-		 * @param nType The raw engine datamap field type value.
+		 * @param type The engine datamap field type.
 		 * @return The corresponding model type reference.
 		 */
-		[[nodiscard]] schema::SchemaTypeRef_t CollectDataMapType(int nType);
+		[[nodiscard]] schema::SchemaTypeRef_t CollectDataMapType(DataMapFieldType_t type);
 		/**
 		 * @brief Collects and caches a schema type.
 		 * @param pType The source type, which may be null.
