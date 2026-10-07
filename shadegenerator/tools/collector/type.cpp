@@ -171,7 +171,7 @@ shade::schema::SchemaTypeRef_t shade::tools::CSchemaCollector::CollectType(const
 	return result;
 }
 
-shade::schema::SchemaTypeRef_t shade::tools::CSchemaCollector::CollectDataMapType(DataMapFieldType_t type) {
+shade::schema::SchemaTypeRef_t shade::tools::CSchemaCollector::CollectDataMapType(SpawnKeyType_t type) {
 	auto AddAtomic = [this](std::string name) {
 		return m_Model.AddType(schema::AtomicType_t{
 		    .m_szName     = std::move(name),
@@ -181,127 +181,76 @@ shade::schema::SchemaTypeRef_t shade::tools::CSchemaCollector::CollectDataMapTyp
 
 	/// @author neverlosecc/source2gen
 	switch (type) {
-	case DataMapFieldType_t::FIELD_VOID:
-#ifdef SHADE_GAME_DOTA2
-	case DataMapFieldType_t::FIELD_CUSTOM:
-#endif
+	case SpawnKeyType_t::FIELD_VOID:
 		return AddBuiltinType(kBuiltinVoid);
-	case DataMapFieldType_t::FIELD_FLOAT32:
-#ifdef SHADE_GAME_DOTA2
-	case DataMapFieldType_t::FIELD_ENGINE_TIME:
-#endif
-	case DataMapFieldType_t::FIELD_NETWORK_QUANTIZED_FLOAT:
+	case SpawnKeyType_t::FIELD_FLOAT32:
+	case SpawnKeyType_t::FIELD_NETWORK_QUANTIZED_FLOAT:
 		return AddBuiltinType(schema::ESchemaBuiltinType::FLOAT32);
-#ifdef SHADE_GAME_DOTA2
-	case DataMapFieldType_t::FIELD_FLOAT64:
-		return AddBuiltinType(schema::ESchemaBuiltinType::FLOAT64);
-#endif
-	case DataMapFieldType_t::FIELD_INT16:
+	case SpawnKeyType_t::FIELD_INT16:
 		return AddBuiltinType(schema::ESchemaBuiltinType::INT16);
-	case DataMapFieldType_t::FIELD_INT32:
-	case DataMapFieldType_t::FIELD_TICK:
-#ifdef SHADE_GAME_DOTA2
-	case DataMapFieldType_t::FIELD_ENGINE_TICK:
-#endif
+	case SpawnKeyType_t::FIELD_INT32:
+	case SpawnKeyType_t::FIELD_TICK:
 		return AddBuiltinType(schema::ESchemaBuiltinType::INT32);
-	case DataMapFieldType_t::FIELD_INT64:
+	case SpawnKeyType_t::FIELD_INT64:
 		return AddBuiltinType(schema::ESchemaBuiltinType::INT64);
-	case DataMapFieldType_t::FIELD_UINT8:
+	case SpawnKeyType_t::FIELD_UINT8:
 		return AddBuiltinType(schema::ESchemaBuiltinType::UINT8);
-	case DataMapFieldType_t::FIELD_UINT16:
+	case SpawnKeyType_t::FIELD_UINT16:
 		return AddBuiltinType(schema::ESchemaBuiltinType::UINT16);
-	case DataMapFieldType_t::FIELD_UINT32:
+	case SpawnKeyType_t::FIELD_UINT32:
 		return AddBuiltinType(schema::ESchemaBuiltinType::UINT32);
-	case DataMapFieldType_t::FIELD_UINT64:
+	case SpawnKeyType_t::FIELD_UINT64:
 		return AddBuiltinType(schema::ESchemaBuiltinType::UINT64);
-	case DataMapFieldType_t::FIELD_BOOLEAN:
+	case SpawnKeyType_t::FIELD_BOOLEAN:
 		return AddBuiltinType(schema::ESchemaBuiltinType::BOOL);
-	case DataMapFieldType_t::FIELD_CHARACTER:
+	case SpawnKeyType_t::FIELD_CHARACTER:
 		return AddBuiltinType(schema::ESchemaBuiltinType::CHAR);
-#ifdef SHADE_GAME_DOTA2
-	case DataMapFieldType_t::FIELD_CSTRING:
-		return m_Model.AddType(schema::PointerType_t{
-		    .m_PointeeType = AddBuiltinType(schema::ESchemaBuiltinType::CHAR),
-		});
-#endif
-	case DataMapFieldType_t::FIELD_SOUNDNAME:
+	case SpawnKeyType_t::FIELD_SOUNDNAME:
 		return AddBuiltinType(schema::ESchemaBuiltinType::INT32);
-#ifdef SHADE_GAME_DOTA2
-	case DataMapFieldType_t::FIELD_FUNCTION:
-		return m_Model.AddType(schema::PointerType_t{
-		    .m_PointeeType = AddBuiltinType(kBuiltinVoid),
-		});
-#endif
-	case DataMapFieldType_t::FIELD_TIME:
+	case SpawnKeyType_t::FIELD_TIME:
 		return AddAtomic("GameTime_t");
-	case DataMapFieldType_t::FIELD_STRING:
+	case SpawnKeyType_t::FIELD_STRING:
 		return AddAtomic("CUtlSymbolLarge");
-	case DataMapFieldType_t::FIELD_VECTOR:
-	case DataMapFieldType_t::FIELD_POSITION_VECTOR:
-	case DataMapFieldType_t::FIELD_NETWORK_ORIGIN_CELL_QUANTIZED_VECTOR:
-#ifdef SHADE_GAME_DOTA2
-	case DataMapFieldType_t::FIELD_NETWORK_ORIGIN_CELL_QUANTIZED_POSITION_VECTOR:
-#endif
-	case DataMapFieldType_t::FIELD_DIRECTION_VECTOR_WORLDSPACE:
-	case DataMapFieldType_t::FIELD_NETWORK_QUANTIZED_VECTOR:
-	case DataMapFieldType_t::FIELD_NETWORK_QUANTIZED_VECTORWS:
-	case DataMapFieldType_t::FIELD_NETWORK_ORIGIN_CELL_QUANTIZED_VECTORWS:
+	case SpawnKeyType_t::FIELD_VECTOR:
+	case SpawnKeyType_t::FIELD_POSITION_VECTOR:
+	case SpawnKeyType_t::FIELD_NETWORK_ORIGIN_CELL_QUANTIZED_VECTOR:
+	case SpawnKeyType_t::FIELD_DIRECTION_VECTOR_WORLDSPACE:
+	case SpawnKeyType_t::FIELD_NETWORK_QUANTIZED_VECTOR:
+	case SpawnKeyType_t::FIELD_NETWORK_QUANTIZED_VECTORWS:
+	case SpawnKeyType_t::FIELD_NETWORK_ORIGIN_CELL_QUANTIZED_VECTORWS:
 		return AddAtomic("Vector");
-	case DataMapFieldType_t::FIELD_VECTOR2D:
+	case SpawnKeyType_t::FIELD_VECTOR2D:
 		return AddAtomic("Vector2D");
-	case DataMapFieldType_t::FIELD_VECTOR4D:
+	case SpawnKeyType_t::FIELD_VECTOR4D:
 		return AddAtomic("Vector4D");
-	case DataMapFieldType_t::FIELD_QANGLE:
-	case DataMapFieldType_t::FIELD_QANGLE_WORLDSPACE:
+	case SpawnKeyType_t::FIELD_QANGLE:
+	case SpawnKeyType_t::FIELD_QANGLE_WORLDSPACE:
 		return AddAtomic("QAngle");
-	case DataMapFieldType_t::FIELD_QUATERNION:
-	case DataMapFieldType_t::FIELD_QUATERNION_WORLDSPACE:
+	case SpawnKeyType_t::FIELD_QUATERNION:
+	case SpawnKeyType_t::FIELD_QUATERNION_WORLDSPACE:
 		return AddAtomic("Quaternion");
-	case DataMapFieldType_t::FIELD_UTLSTRING:
+	case SpawnKeyType_t::FIELD_UTLSTRING:
 		return AddAtomic("CUtlString");
-	case DataMapFieldType_t::FIELD_UTLSTRINGTOKEN:
+	case SpawnKeyType_t::FIELD_UTLSTRINGTOKEN:
 		return AddAtomic("CUtlStringToken");
-	case DataMapFieldType_t::FIELD_COLOR32:
+	case SpawnKeyType_t::FIELD_COLOR32:
 		return AddAtomic("Color");
-	case DataMapFieldType_t::FIELD_AMMO_INDEX:
+	case SpawnKeyType_t::FIELD_AMMO_INDEX:
 		return AddAtomic("AmmoIndex_t");
-#ifdef SHADE_GAME_DOTA2
-	case DataMapFieldType_t::FIELD_WORLD_GROUP_ID:
-		return AddAtomic("WorldGroupId_t");
-	case DataMapFieldType_t::FIELD_ROTATION_VECTOR:
-	case DataMapFieldType_t::FIELD_ROTATION_VECTOR_WORLDSPACE:
-		return AddAtomic("RotationVector");
-	case DataMapFieldType_t::FIELD_CTRANSFORM:
-	case DataMapFieldType_t::FIELD_CTRANSFORM_WORLDSPACE:
-		return AddAtomic("CTransform");
-	case DataMapFieldType_t::FIELD_SHIM:
-		return AddAtomic("SHIM");
-	case DataMapFieldType_t::FIELD_ATTACHMENT_HANDLE:
-		return AddAtomic("AttachmentHandle_t");
-#endif
-	case DataMapFieldType_t::FIELD_GLOBALSYMBOL:
+	case SpawnKeyType_t::FIELD_GLOBALSYMBOL:
 		return AddAtomic("CGlobalSymbol");
-	case DataMapFieldType_t::FIELD_EHANDLE:
+	case SpawnKeyType_t::FIELD_EHANDLE:
 		return AddAtomic("CHandle<CBaseEntity>");
-	case DataMapFieldType_t::FIELD_HMODEL:
+	case SpawnKeyType_t::FIELD_HMODEL:
 		return AddAtomic("CStrongHandle<InfoForResourceTypeCModel>");
-	case DataMapFieldType_t::FIELD_HMATERIAL:
+	case SpawnKeyType_t::FIELD_HMATERIAL:
 		return AddAtomic("CStrongHandle<InfoForResourceTypeIMaterial2>");
-	case DataMapFieldType_t::FIELD_HRENDERTEXTURE:
+	case SpawnKeyType_t::FIELD_HRENDERTEXTURE:
 		return AddAtomic("CStrongHandle<InfoForResourceTypeCTextureBase>");
-	case DataMapFieldType_t::FIELD_HPARTICLESYSTEMDEFINITION:
+	case SpawnKeyType_t::FIELD_HPARTICLESYSTEMDEFINITION:
 		return AddAtomic("CStrongHandle<InfoForResourceTypeIParticleSystemDefinition>");
-	case DataMapFieldType_t::FIELD_HPOSTPROCESSING:
+	case SpawnKeyType_t::FIELD_HPOSTPROCESSING:
 		return AddAtomic("CStrongHandle<InfoForResourceTypeCPostProcessingResource>");
-#ifdef SHADE_GAME_DOTA2
-	case DataMapFieldType_t::FIELD_HNMGRAPHDEFINITION:
-		return AddAtomic("CStrongHandle<InfoForResourceTypeCNmGraphDefinition>");
-	case DataMapFieldType_t::FIELD_MATRIX3X4_WORLDSPACE:
-	case DataMapFieldType_t::FIELD_MATRIX3X4:
-		return AddAtomic("matrix3x4_t");
-	case DataMapFieldType_t::FIELD_HSCRIPT:
-		return AddAtomic("HSCRIPT");
-#endif
 	default:
 		return AddInvalidType("datamap field type " + std::to_string(static_cast<int>(type)));
 	}

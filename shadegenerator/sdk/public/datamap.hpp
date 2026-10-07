@@ -158,12 +158,6 @@ enum class SpawnKeyType_t : uint8_t
 	FIELD_TYPECOUNT
 };
 
-#ifdef SHADE_GAME_DOTA2
-using DataMapFieldType_t = fieldtype_t;
-#else
-using DataMapFieldType_t = SpawnKeyType_t;
-#endif
-
 enum TypedescriptionOffsetType_t
 {
 	TD_OFFSET_NORMAL = 0,
@@ -175,7 +169,7 @@ enum TypedescriptionOffsetType_t
 
 struct typedescription_t
 {
-	DataMapFieldType_t	fieldType;
+	SpawnKeyType_t	fieldType;
 
 	const char			*fieldName;
 	int					fieldOffset; // Local offset value
@@ -183,13 +177,6 @@ struct typedescription_t
 	int					flags;
 	// the name of the variable in the map/fgd data, or the name of the action
 	const char			*externalName;
-
-#ifdef SHADE_GAME_DOTA2
-	// pointer to the function set for save/restoring of custom data types
-	ISaveRestoreOps		*pSaveRestoreOps;
-	// for associating function with string names
-	void*			inputFunc; // inputfunc_t
-#endif
 
 	// For embedding additional datatables inside this one
 	union
@@ -201,26 +188,12 @@ struct typedescription_t
 	// Stores the actual member variable size in bytes
 	int					fieldSizeInBytes;
 
-#ifdef SHADE_GAME_DOTA2
-	// Tolerance for field errors for float fields
-	float				fieldTolerance;
-
-	// For raw fields (including children of embedded stuff) this is the flattened offset
-	int					flatOffset[ TD_OFFSET_COUNT ];
-	unsigned short		flatGroup;
-
-	IPredictionCopyOps*	pPredictionCopyOps;
-	datamap_t*			m_pPredictionCopyDataMap;
-#endif
-
 	[[nodiscard]] std::string_view GetFieldName() const noexcept {
 		return fieldName ? fieldName : "";
 	}
 };
 
-#if defined(SHADE_GAME_CS2) || defined (SHADE_GAME_DEADLOCK)
 static_assert(sizeof(typedescription_t) == 0x38, "typedescription_t size mismatch");
-#endif
 
 // See predictioncopy.h for implementation and notes
 struct optimized_datamap_t;
