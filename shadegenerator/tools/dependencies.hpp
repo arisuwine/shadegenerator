@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 #include <span>
 
 #include "schema/atomicrecord.hpp"
@@ -7,6 +8,17 @@
 #include "schema/model.hpp"
 
 namespace shade::tools {
+	/**
+	 * @brief Selects whether atomic template parameters contribute dependencies.
+	 *
+	 * IDA output flattens atomic specializations into self-contained names, so
+	 * their parameters never appear as type references there.
+	 */
+	enum class EAtomicParameters : std::uint8_t {
+		Declare,
+		Ignore
+	};
+
 	/**
 	 * @brief Builds dependencies required to emit one class definition.
 	 *
@@ -17,9 +29,11 @@ namespace shade::tools {
 	 *
 	 * @param model A `schema::CSchemaModel` that owns the referenced types.
 	 * @param record A `schema::SchemaClassRecord_t` whose dependencies are resolved.
+	 * @param atomicParameters Whether atomic template parameters contribute dependencies.
 	 * @return A `schema::SchemaDependencies_t` of normalized dependencies.
 	 */
-	[[nodiscard]] schema::SchemaDependencies_t BuildDependencies(const schema::CSchemaModel& model, const schema::SchemaClassRecord_t& record);
+	[[nodiscard]] schema::SchemaDependencies_t BuildDependencies(const schema::CSchemaModel& model, const schema::SchemaClassRecord_t& record,
+	                                                             EAtomicParameters atomicParameters = EAtomicParameters::Declare);
 
 	/**
 	 * @brief Builds aggregate dependencies required by atomic declarations.

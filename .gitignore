@@ -23,3 +23,7 @@ cmake_install.cmake
 .clangd
 .claude/
 docs/
+.agents/
+AGENTS.md
+.claude/
+CLAUDE.md

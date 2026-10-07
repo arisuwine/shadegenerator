@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.23)
 
-project(shadegenerator VERSION 1.0.2 LANGUAGES CXX)
+project(shadegenerator VERSION 1.1.0 LANGUAGES CXX)
 
 include(FetchContent)
 

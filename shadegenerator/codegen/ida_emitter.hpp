@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <span>
+#include <string>
 
 #include "iemitter.hpp"
 #include "schema/dependencies.hpp"
@@ -20,7 +21,7 @@ namespace shade::codegen {
 	};
 
 	/**
-	 * @brief Emits one-file, flattened schema declarations for IDA.
+	 * @brief Emits flattened schema declarations for IDA without include directives.
 	 */
 	class CIdaEmitter final : public IEmitter {
 	private:
@@ -110,6 +111,16 @@ namespace shade::codegen {
 		 * @param dependencies A `const schema::SchemaDependencies_t&`.
 		 */
 		void ForwardDeclarations(const schema::SchemaDependencies_t& dependencies);
+
+		/**
+		 * @brief Emits the files that must be imported into IDA before the current one.
+		 *
+		 * IDA parses each header on its own, so complete definitions from other
+		 * files must already exist in the database instead of being included.
+		 *
+		 * @param files Paths relative to the SDK root, in import order.
+		 */
+		void ImportRequirements(std::span<const std::string> files);
 
 		[[nodiscard]] std::string_view GetExtension() const noexcept override {
 			return ".hpp";

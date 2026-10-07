@@ -35,6 +35,18 @@ int main(int argc, char* argv[]) {
 		    ->transform(CLI::CheckedTransformer(types, CLI::ignore_case))
 		    ->type_name("EMIT TYPE");
 
+		const std::map<std::string, shade::ESplitMode> splitModes = {
+			{ "MODULE", shade::ESplitMode::MODULE },
+			{ "PER_FILE", shade::ESplitMode::PER_FILE },
+			{ "DUAL", shade::ESplitMode::DUAL },
+			{ "SINGLE", shade::ESplitMode::SINGLE },
+		};
+		shade::ESplitMode splitMode = shade::ESplitMode::PER_FILE;
+		auto*             splitOption =
+		    app.add_option("-s,--split", splitMode, "SDK file layout (per_file, module, dual, single; per_file is default for CPP, single for IDA types)")
+		        ->transform(CLI::CheckedTransformer(splitModes, CLI::ignore_case))
+		        ->type_name("SPLIT MODE");
+
 		std::string szGamePath;
 		app.add_option("-p,--path", szGamePath, "Target install directory (necessary if the path to the game was not detected automatically)");
 
@@ -42,6 +54,8 @@ int main(int argc, char* argv[]) {
 		app.add_option("-o,--output", szOutputPath, "Output directory for generated files (defaults to the executable directory)");
 
 		CLI11_PARSE(app, argc, argv);
+		if (splitOption->count() == 0)
+			splitMode = shade::GetDefaultSplitMode(eEmitType);
 
 		shade::game::CGame game{ szGamePath };
 
@@ -84,7 +98,8 @@ int main(int argc, char* argv[]) {
 		} else
 			ctx.m_OutputPath = fs::path{ szOutputPath };
 
-		ctx.m_eEmitType = eEmitType;
+		ctx.m_eEmitType  = eEmitType;
+		ctx.m_eSplitMode = splitMode;
 
 		shade::GenerateSdk(ctx);
 	} catch (const std::exception& e) {

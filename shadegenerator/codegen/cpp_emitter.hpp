@@ -104,11 +104,28 @@ namespace shade::codegen {
 		void Atomic(const schema::SchemaAtomicRecord_t& record) override;
 
 		/**
-		 * @brief Emits includes and forward declarations for schema dependencies.
+		 * @brief Emits per-type includes and forward declarations for schema dependencies.
+		 *
+		 * Each complete-definition dependency is included from its own header.
 		 *
 		 * @param dependencies A `const schema::SchemaDependencies_t&`.
+		 * @param includeRoot Root directory name used by generated include paths.
 		 */
-		void Dependencies(const schema::SchemaDependencies_t& dependencies);
+		void Dependencies(const schema::SchemaDependencies_t& dependencies, std::string_view includeRoot = "shade");
+
+		/**
+		 * @brief Emits local includes in the given order.
+		 *
+		 * @param paths Include paths relative to the include root's parent directory.
+		 */
+		void Includes(std::span<const std::string> paths);
+
+		/**
+		 * @brief Emits namespace-qualified forward declarations for declaration dependencies.
+		 *
+		 * @param dependencies A `const schema::SchemaDependencies_t&`; definitions are ignored.
+		 */
+		void ForwardDeclarations(const schema::SchemaDependencies_t& dependencies);
 
 		/**
 		 * @brief Emits forward declarations for valid atomic types.

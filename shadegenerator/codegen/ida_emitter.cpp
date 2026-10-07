@@ -89,6 +89,16 @@ void shade::codegen::CIdaEmitter::ForwardDeclarations(const schema::SchemaDepend
 		m_Generator.NewLine();
 }
 
+void shade::codegen::CIdaEmitter::ImportRequirements(std::span<const std::string> files) {
+	if (files.empty())
+		return;
+
+	m_Generator.StartBlockComment().Comment(" Requires (import these files first, in order):\n");
+	for (const auto& file : files)
+		m_Generator.Comment(std::format(" * {}\n", file));
+	m_Generator.Comment(" ").EndBlockComment().NewLine().NewLine();
+}
+
 void shade::codegen::CIdaEmitter::ClassParameters(const schema::SchemaClassRecord_t& record) {
 	m_Generator.StartBlockComment().Comment(" Class Parameters\n");
 	m_Generator.Comment(std::format(" * Size: 0x{:x}\n", record.m_Layout.m_nSize));

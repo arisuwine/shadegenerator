@@ -24,6 +24,7 @@ namespace {
 	using shade::schema::SchemaDependencies_t;
 	using shade::schema::SchemaTypeName_t;
 	using shade::schema::SchemaTypeRef_t;
+	using shade::tools::EAtomicParameters;
 
 	void AddDependency(SchemaDependencies_t& dependencies, const SchemaTypeName_t& name, EDependencyRequirement requirement) {
 		auto& bucket = requirement == EDependencyRequirement::Definition ? dependencies.m_Definitions : dependencies.m_Declarations;
@@ -31,27 +32,28 @@ namespace {
 	}
 
 	void ResolveTypeDependencies(const shade::schema::CSchemaModel& model, SchemaTypeRef_t type, EDependencyRequirement requirement,
-	                             SchemaDependencies_t& dependencies);
+	                             EAtomicParameters atomicParameters, SchemaDependencies_t& dependencies);
 
 	void ResolveAtomicParameters(const shade::schema::CSchemaModel& model, const SchemaAtomicParameters_t& parameters,
 	                             SchemaDependencies_t& dependencies) {
+		constexpr auto kDeclare = EAtomicParameters::Declare;
 		std::visit(
 		    [&]<typename T>(const T& value) {
 			    using Value_t = std::remove_cvref_t<T>;
 			    if constexpr (std::same_as<Value_t, SchemaAtomicTypeParameter_t>) {
-				    ResolveTypeDependencies(model, value.m_Type, EDependencyRequirement::Declaration, dependencies);
+				    ResolveTypeDependencies(model, value.m_Type, EDependencyRequirement::Declaration, kDeclare, dependencies);
 			    } else if constexpr (std::same_as<Value_t, SchemaAtomicCollectionParameters_t>) {
-				    ResolveTypeDependencies(model, value.m_ElementType, EDependencyRequirement::Declaration, dependencies);
+				    ResolveTypeDependencies(model, value.m_ElementType, EDependencyRequirement::Declaration, kDeclare, dependencies);
 			    } else if constexpr (std::same_as<Value_t, SchemaAtomicTwoTypeParameters_t>) {
-				    ResolveTypeDependencies(model, value.m_FirstType, EDependencyRequirement::Declaration, dependencies);
-				    ResolveTypeDependencies(model, value.m_SecondType, EDependencyRequirement::Declaration, dependencies);
+				    ResolveTypeDependencies(model, value.m_FirstType, EDependencyRequirement::Declaration, kDeclare, dependencies);
+				    ResolveTypeDependencies(model, value.m_SecondType, EDependencyRequirement::Declaration, kDeclare, dependencies);
 			    }
 		    },
 		    parameters);
 	}
 
 	void ResolveTypeDependencies(const shade::schema::CSchemaModel& model, SchemaTypeRef_t type, EDependencyRequirement requirement,
-	                             SchemaDependencies_t& dependencies) {
+	                             EAtomicParameters atomicParameters, SchemaDependencies_t& dependencies) {
 		if (type == shade::schema::kInvalidSchemaTypeRef)
 			return;
 
@@ -65,11 +67,12 @@ namespace {
 			    } else if constexpr (std::same_as<Value_t, DeclaredEnumType_t>) {
 				    AddDependency(dependencies, value.m_Name, EDependencyRequirement::Definition);
 			    } else if constexpr (std::same_as<Value_t, PointerType_t>) {
-				    ResolveTypeDependencies(model, value.m_PointeeType, EDependencyRequirement::Declaration, dependencies);
+				    ResolveTypeDependencies(model, value.m_PointeeType, EDependencyRequirement::Declaration, atomicParameters, dependencies);
 			    } else if constexpr (std::same_as<Value_t, FixedArrayType_t>) {
-				    ResolveTypeDependencies(model, value.m_ElementType, requirement, dependencies);
+				    ResolveTypeDependencies(model, value.m_ElementType, requirement, atomicParameters, dependencies);
 			    } else if constexpr (std::same_as<Value_t, AtomicType_t>) {
-				    ResolveAtomicParameters(model, value.m_Parameters, dependencies);
+				    if (atomicParameters == EAtomicParameters::Declare)
+					    ResolveAtomicParameters(model, value.m_Parameters, dependencies);
 			    }
 		    },
 		    model.GetType(type));
@@ -94,17 +97,18 @@ namespace {
 	}
 } // namespace
 
-shade::schema::SchemaDependencies_t shade::tools::BuildDependencies(const schema::CSchemaModel& model, const schema::SchemaClassRecord_t& record) {
+shade::schema::SchemaDependencies_t shade::tools::BuildDependencies(const schema::CSchemaModel& model, const schema::SchemaClassRecord_t& record,
+                                                                    EAtomicParameters atomicParameters) {
 	schema::SchemaDependencies_t result;
 
 	for (const auto& base : record.m_BaseClasses)
 		AddDependency(result, base.m_Name, EDependencyRequirement::Definition);
 
 	for (const auto& field : record.m_Fields)
-		ResolveTypeDependencies(model, field.m_Type, EDependencyRequirement::Definition, result);
+		ResolveTypeDependencies(model, field.m_Type, EDependencyRequirement::Definition, atomicParameters, result);
 
 	for (const auto& field : record.m_DataMapFields)
-		ResolveTypeDependencies(model, field.m_Type, EDependencyRequirement::Definition, result);
+		ResolveTypeDependencies(model, field.m_Type, EDependencyRequirement::Definition, atomicParameters, result);
 
 	NormalizeDependencies(result, &record.m_Name);
 

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <concepts>
 #include <format>
+#include <string>
 #include <string_view>
 #include <type_traits>
 #include <vector>
@@ -63,18 +64,25 @@ void shade::codegen::CCppEmitter::Prologue() {
 	m_Generator.NewLine();
 }
 
-void shade::codegen::CCppEmitter::Dependencies(const schema::SchemaDependencies_t& dependencies) {
-	bool hasIncludes = false;
+void shade::codegen::CCppEmitter::Dependencies(const schema::SchemaDependencies_t& dependencies, std::string_view includeRoot) {
+	std::vector<std::string> includes;
 	for (const auto& [module, definitions] : tools::GetSortedDependencyGroups(dependencies.m_Definitions)) {
-		for (const auto name : definitions) {
-			const std::string path = module.empty() ? std::format("shade/sdk/{}.hpp", name) : std::format("shade/sdk/{}/{}.hpp", module, name);
-			m_Generator.Include(path, EIncludeType::Local);
-			hasIncludes = true;
-		}
+		for (const auto name : definitions)
+			includes.push_back(module.empty() ? std::format("{}/sdk/{}.hpp", includeRoot, name) :
+			                                    std::format("{}/sdk/{}/{}.hpp", includeRoot, module, name));
 	}
-	if (hasIncludes)
-		m_Generator.NewLine();
+	Includes(includes);
+	ForwardDeclarations(dependencies);
+}
 
+void shade::codegen::CCppEmitter::Includes(std::span<const std::string> paths) {
+	for (const auto& path : paths)
+		m_Generator.Include(path, EIncludeType::Local);
+	if (!paths.empty())
+		m_Generator.NewLine();
+}
+
+void shade::codegen::CCppEmitter::ForwardDeclarations(const schema::SchemaDependencies_t& dependencies) {
 	const auto declarationGroups = tools::GetSortedDependencyGroups(dependencies.m_Declarations);
 	if (declarationGroups.empty())
 		return;

@@ -33,6 +33,7 @@ You can pass additional arguments to the generator:
 - `-h`, `--help` - print the help message
 - `-v`, `--version` - print the generator version
 - `-t`, `--type` - select an emit type (cpp, ida_c, ida_cpp)
+- `-s`, `--split` - select the file layout (`per_file`, `module`, `dual`, or `single`; defaults to `per_file` for `cpp` and `single` for IDA types)
 - `-p`, `--path` - specify the game root directory
 - `-o`, `--output` - specify the output directory (without this argument, the SDK will be generated in the directory containing the executable)
 
@@ -47,13 +48,22 @@ The generator will try to detect the game path automatically. If it cannot, use 
 ## Emit Types
 The generator supports three emit types:
 - `cpp` - standard `C++`-style header files
-- `ida_c` - `C`-style `IDA`-compatible header file (no C++ inheritance)
-- `ida_cpp` - `C++`-style `IDA`-compatible header file (with C++ inheritance)
+- `ida_c` - `C`-style `IDA`-compatible header files (no C++ inheritance)
+- `ida_cpp` - `C++`-style `IDA`-compatible header files (with C++ inheritance)
+
+## Split Modes
+Every emit type supports four file layouts, selected with `--split`:
+- `per_file` - one header per class or enum
+- `module` - one header per schema module
+- `dual` - both of the above in one tree
+- `single` - one header for the whole SDK
+
+`cpp` output is written to `<output>/shade`, and IDA output is written to `<output>/shade_ida`. Use a fresh output directory when changing layouts because the generator does not remove files left by previous runs.
 
 ## Generated SDK Usage
 ### C++
 
-The `cpp` emitter produces the following directory structure:
+By default, the `cpp` emitter uses `--split per_file` and produces the following directory structure:
 
 ```text
 shade/
@@ -65,7 +75,13 @@ shade/
         └── <enum>.hpp
 ```
 
-Module names depend on the selected game and include directories such as `client`, `animationsystem`, and `schemasystem`.
+Module names depend on the selected game and include directories such as `client`, `animationsystem`, and `schemasystem`. Records without a module are written directly to `sdk/`.
+
+`--split module` writes one header per schema module instead, for example `shade/sdk/client.hpp`; records without a module use `shade/sdk/__global.hpp`. A module header includes `types.hpp` and the other module headers whose complete definitions it needs, and it defines its enums and classes in dependency order. Some modules need complete definitions from each other (in CS2, `client` and `server` do). For such a cycle, the generator orders the modules and moves only the classes that an earlier module header needs from a later one, plus the definitions those classes need, into `shade/sdk/__cycle_<n>.hpp`. Every module header of the cycle includes that file. An enum needed before its module header is declared opaquely instead. A cycle between individual class definitions cannot be emitted and stops generation before writing output.
+
+`--split dual` writes both layouts into one `shade` tree. Each module header is placed in its module directory next to the individual headers, for example `sdk/client/client.hpp` and `sdk/client/C_BaseEntity.hpp`; both layouts share `sdk/types.hpp` and one `CMakeLists.txt`. Module headers contain their own definitions, so choose one header layout per translation unit to avoid defining the same class twice.
+
+`--split single` writes `shade/shade.hpp`, which includes `sdk/types.hpp` and defines every enum and class.
 
 You can add your own atomic types in `types.hpp`, but they must match the names and sizes of the generated types.
 
@@ -79,7 +95,25 @@ target_link_libraries(your_target PRIVATE shade)
 ```
 
 ### IDA C++ / IDA C
-The `ida` emitter generates a single `.hpp` file. To import the generated SDK into `IDA Pro`, go to `File` -> `Load file` -> `Parse C header file`.
+To import a generated header into `IDA Pro`, go to `File` -> `Load file` -> `Parse C header file`.
+
+By default, the `ida` emitters use `--split single` and generate `shade_ida/shade.hpp`, which contains the whole SDK.
+
+The other layouts never use `#include`; import each file separately instead:
+
+```text
+shade_ida/
+└── sdk/
+    ├── types.hpp          # atomic types; import first
+    ├── enums.hpp          # all enums; import second
+    ├── <module>.hpp       # --split module
+    ├── __cycle_<n>.hpp    # --split module or dual, when module headers form a cycle
+    └── <module>/
+        ├── <class>.hpp    # --split per_file or dual
+        └── <module>.hpp   # --split dual
+```
+
+Each class or module header begins with a `Requires` comment that lists every file to import before it, in import order. A header declares the types it only references through pointers, so those types do not need to be imported first.
 
 ## Building
 ### Requirements
@@ -166,7 +200,7 @@ The selected game is determined at compile time. On startup, the generator uses 
 
 ### Dependency Analysis
 
-Before emitting declarations, the generator analyzes relationships between collected types. It distinguishes dependencies that require complete definitions from those that can use forward declarations. C++ output uses this information to generate the required includes for each header, while IDA output sorts classes into a valid declaration order for the combined output file.
+Before emitting declarations, the generator analyzes relationships between collected types. It distinguishes dependencies that require complete definitions from those that can use forward declarations. Every layout uses it to define classes in a valid order. C++ output also uses it to generate the required includes for each header, while split IDA output lists the files to import first and declares types referenced only through pointers.
 
 ---
 
@@ -174,7 +208,7 @@ Before emitting declarations, the generator analyzes relationships between colle
 
 Type formatters convert schema types and declarations into the syntax required by the selected target. Emitters use the formatted types together with `CGenerator`, which handles low-level source construction, indentation, declarations, and comments.
 
-The `cpp` emitter creates a self-contained `shade` directory containing `types.hpp`, separate headers for classes and enums, and a CMake interface target. The `ida_c` and `ida_cpp` emitters instead produce a single flattened `shade.hpp` file suitable for importing into IDA Pro.
+The `cpp` emitter creates a `shade` directory containing `types.hpp`, headers in the selected split layout, and a CMake interface target. The `ida_c` and `ida_cpp` emitters instead create a `shade_ida` directory with flattened declarations suitable for importing into IDA Pro: one `shade.hpp` by default, or include-free headers in the selected split layout.
 
 ---
 
