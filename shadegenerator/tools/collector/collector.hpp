@@ -49,7 +49,7 @@ namespace shade::tools {
 		 * @param type The engine datamap field type.
 		 * @return The corresponding model type reference.
 		 */
-		[[nodiscard]] schema::SchemaTypeRef_t CollectDataMapType(DataMapFieldType_t type);
+		[[nodiscard]] schema::SchemaTypeRef_t CollectDataMapType(SpawnKeyType_t type);
 		/**
 		 * @brief Collects and caches a schema type.
 		 * @param pType The source type, which may be null.
