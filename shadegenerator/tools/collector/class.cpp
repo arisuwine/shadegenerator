@@ -277,17 +277,22 @@ shade::schema::SchemaEnumRecord_t shade::tools::CSchemaCollector::CollectEnum(co
 		.m_Values = {},
 	};
 
-	if (const auto underlying = GetIntegerType(info.m_nSize, info.m_nMinEnumeratorValue < 0))
-		result.m_UnderlyingType = AddBuiltinType(*underlying);
-	else
-		result.m_UnderlyingType = AddInvalidType(GetUnsupportedEnumTypeName(info));
-
 	for (const auto& value : info.GetEnumerators()) {
 		result.m_Values.push_back({
 		    .m_szName = std::string(value.GetName()),
 		    .m_nValue = value.m_nValue,
 		});
 	}
+
+	// Signedness comes from the enumerator values themselves. The cached m_nMinEnumeratorValue/m_nMaxEnumeratorValue
+	// pair is not a reliable signed range: Dota 2 schema data now stores min = 0 and max = -1 for enums whose
+	// enumerators include -1, while CS2 and Deadlock store min = -1 and max = -1 for the same enum.
+	const bool bIsSigned = std::ranges::any_of(result.m_Values, [](const auto& value) { return value.m_nValue < 0; });
+
+	if (const auto underlying = GetIntegerType(info.m_nSize, bIsSigned))
+		result.m_UnderlyingType = AddBuiltinType(*underlying);
+	else
+		result.m_UnderlyingType = AddInvalidType(GetUnsupportedEnumTypeName(info));
 
 	return result;
 }
